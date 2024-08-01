@@ -7,6 +7,7 @@ var configToml = reloadConfigToml()
 data class ConfigToml(
     val token: String,
     val prefix: String,
+    val cooldown: Int,
     val admins: List<String>
 )
 

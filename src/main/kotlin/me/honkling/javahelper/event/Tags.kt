@@ -2,11 +2,18 @@ package me.honkling.javahelper.event
 
 import dev.kord.core.Kord
 import dev.kord.core.behavior.reply
+import dev.kord.core.entity.Emoji
+import dev.kord.core.entity.GuildEmoji
+import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
+import dev.kord.rest.route.Route
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import me.honkling.javahelper.config.configToml
 import me.honkling.javahelper.config.tagsToml
+import me.honkling.javahelper.lib.tagUse
 import me.honkling.javahelper.manager.annotation.Event
 
 @Event
@@ -23,6 +30,17 @@ private fun register(kord: Kord) {
         val tag = tagsToml.tags.values.find { it.name == name || name in it.aliases }
             ?: return@on
 
+        val now = Clock.System.now()
+
+        if (tag.name in tagUse) {
+            val past = tagUse[tag.name]!!
+
+            if (now.minus(past).inWholeSeconds <= configToml.cooldown) {
+                message.addReaction(ReactionEmoji.Unicode("⏰"))
+                return@on
+            }
+        }
+
         val embed = EmbedBuilder()
         embed.description = tag.content
         embed.footer {
@@ -35,5 +53,6 @@ private fun register(kord: Kord) {
         }
 
         message.reply { embeds = mutableListOf(embed) }
+        tagUse[tag.name] = now
     }
 }

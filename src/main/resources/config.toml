@@ -1,3 +1,4 @@
 token = ""
 prefix = "j!"
+cooldown = 5
 admins = []
