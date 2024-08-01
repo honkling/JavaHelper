@@ -1,28 +1,20 @@
 package me.honkling.javahelper.command
 
-import dev.kord.common.Color
 import dev.kord.common.entity.ButtonStyle
-import dev.kord.common.entity.Choice
 import dev.kord.common.entity.Permission
 import dev.kord.core.Kord
-import dev.kord.core.behavior.channel.TextChannelBehavior
 import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.core.behavior.interaction.suggest
 import dev.kord.core.behavior.interaction.suggestString
-import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.application.GlobalChatInputCommand
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.entity.interaction.AutoCompleteInteraction
 import dev.kord.core.entity.interaction.ChatInputCommandInteraction
 import dev.kord.core.entity.interaction.SubCommand
-import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
 import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.builder.component.ActionRowBuilder
-import dev.kord.rest.builder.component.ButtonBuilder
-import dev.kord.rest.builder.interaction.StringChoiceBuilder
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.interaction.subCommand
 import dev.kord.rest.builder.message.EmbedBuilder
@@ -30,6 +22,7 @@ import me.honkling.javahelper.config.TagsToml
 import me.honkling.javahelper.config.tagsToml
 import me.honkling.javahelper.config.writeTagsToml
 import me.honkling.javahelper.lib.createInteraction
+import me.honkling.javahelper.lib.replyNoPing
 import me.honkling.javahelper.manager.annotation.Command
 
 @Command(Command.Type.REGISTRY)
@@ -131,7 +124,7 @@ private suspend fun execute(interaction: ChatInputCommandInteraction) {
                 tagsToml.tags[name] = TagsToml.Tag(name, aliases ?: emptyList(), message.content)
                 writeTagsToml()
 
-                message.reply { content = "Created tag `${name}`$aliasesDisplay." }
+                message.replyNoPing { content = "Created tag `${name}`$aliasesDisplay." }
             }
         }
         "edit" -> {
@@ -155,7 +148,7 @@ private suspend fun execute(interaction: ChatInputCommandInteraction) {
                 getContent { message ->
                     tag.content = message.content
                     writeTagsToml()
-                    message.reply { content = "Updated the tag." }
+                    message.replyNoPing {content = "Updated the tag." }
                     resolve()
                 }
 
@@ -213,12 +206,16 @@ private suspend fun execute(interaction: ChatInputCommandInteraction) {
 
 @Command(Command.Type.AUTOCOMPLETE)
 private suspend fun autocomplete(interaction: AutoCompleteInteraction) {
+    val input = interaction.focusedOption.value.lowercase()
+
     interaction.suggestString {
         for (tag in tagsToml.tags.values) {
-            choice(tag.name, tag.name)
+            if (input in tag.name)
+                choice(tag.name, tag.name)
 
             for (alias in tag.aliases)
-                choice(alias, tag.name)
+                if (input in alias)
+                    choice(alias, tag.name)
         }
     }
 }

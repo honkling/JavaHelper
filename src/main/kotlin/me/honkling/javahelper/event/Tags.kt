@@ -1,18 +1,14 @@
 package me.honkling.javahelper.event
 
 import dev.kord.core.Kord
-import dev.kord.core.behavior.reply
-import dev.kord.core.entity.Emoji
-import dev.kord.core.entity.GuildEmoji
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
-import dev.kord.rest.route.Route
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import me.honkling.javahelper.config.configToml
 import me.honkling.javahelper.config.tagsToml
+import me.honkling.javahelper.lib.replyNoPing
 import me.honkling.javahelper.lib.tagUse
 import me.honkling.javahelper.manager.annotation.Event
 
@@ -52,7 +48,7 @@ private fun register(kord: Kord) {
                 ?: author.defaultAvatar.cdnUrl.toUrl()
         }
 
-        message.reply { embeds = mutableListOf(embed) }
+        message.replyNoPing { embeds = mutableListOf(embed) }
         tagUse[tag.name] = now
     }
 }
